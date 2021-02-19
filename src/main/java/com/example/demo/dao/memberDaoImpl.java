@@ -2,6 +2,7 @@ package com.example.demo.dao;
 
 
 import com.example.demo.entity.MemberEntity;
+import com.mongodb.BasicDBObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -9,12 +10,15 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import javax.servlet.http.HttpServletRequest;
+import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 
 @Repository
@@ -27,7 +31,7 @@ public class memberDaoImpl implements memberDao {
     @Override
     public Object insert(HttpServletRequest request) {
         String memberEmail = request.getParameter("memberEmail");
-        String memberName=request.getParameter("memberName");
+        String memberName = request.getParameter("memberName");
 
         Query query1=new Query(Criteria.where("memberName").is(memberName));
         Query query2=new Query(Criteria.where("memberEmail").is(memberEmail));
@@ -54,6 +58,24 @@ public class memberDaoImpl implements memberDao {
                 Calendar calendar=Calendar.getInstance();
                 calendar.setTime(date);
                 calendar.add(Calendar.YEAR,1);
+
+                int curr_year = calendar.get(Calendar.YEAR)-1;
+                String memberId = "IGU-MGSC-";
+                List<MemberEntity> count_curr = mongoTemplate.find(Query.query(Criteria.where("memberId").regex(String.valueOf(curr_year))),MemberEntity.class);
+
+                int last_num = 0;
+                Iterator<MemberEntity> memberEntityIterator = count_curr.iterator();
+                while(memberEntityIterator.hasNext()){
+                    String num_str = memberEntityIterator.next().getMemberId();
+
+                    int num = Integer.parseInt(num_str.substring(num_str.length()-4));
+
+                    last_num = num>last_num?num:last_num;
+
+                }
+                last_num++;
+                memberEntity.setMemberId(memberId+curr_year+'-'+String.format("%04d",last_num));
+
                 String DueDate=fmt.format(calendar.getTime());
 
 
@@ -76,7 +98,7 @@ public class memberDaoImpl implements memberDao {
     @Override
     public Object delete(HttpServletRequest request) {
         String memberId=request.getParameter("deleteId");
-        Query query=new Query(Criteria.where("_id").is(memberId));
+        Query query=new Query(Criteria.where("memberId").is(memberId));
         MemberEntity member=mongoTemplate.findOne(query,MemberEntity.class);
         if(member==null){
             return "该用户不存在！";

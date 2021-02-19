@@ -2,18 +2,20 @@ package com.example.demo.entity;
 
 
 
+import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.stereotype.Component;
 
-
-@Component
+@Data
 @Document(collection = "member")
 public class MemberEntity {
 
     @Field("_id")
-    String memberId;
+    String Id;
 
+
+    String memberId;
     String memberName;
     String memberEmail;
     String registerTime;
@@ -21,6 +23,14 @@ public class MemberEntity {
     String country;
     String dueTime;  //会员到期时间
     Boolean isDue;   //会员是否到期
+
+    public String getId() {
+        return Id;
+    }
+
+    public void setId(String id) {
+        Id = id;
+    }
 
     public String getAffiliation() {
         return affiliation;
